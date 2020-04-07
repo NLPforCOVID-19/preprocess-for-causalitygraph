@@ -3,7 +3,7 @@ GPUS := 0,1
 
 INPUT_DIR := /mnt/hinoki/murawaki/covid19
 
-PYTHON := nice -19 $(shell which python)
+#PYTHON := nice -19 $(shell which python)
 BERTKNP_DIR := /mnt/berry/home/ueda/bertknp-0.2-20190901
 PYTHON_FOR_BERTKNP := $(BERTKNP_DIR)/.venv/bin/python
 PAS_ANALYSIS_DIR := /mnt/berry/home/ueda/work/bert_pas_analysis
@@ -12,7 +12,7 @@ KNP := /mnt/orange/brew/data/bin/knp
 PAS_MODEL_FILE := /mnt/hinoki/ueda/bert/pas_analysis/result/best/model_best.pth
 HERE := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-# ゆくゆくは複数ファイルを扱えるようにする
+# ゆくゆくは複数ファイルを扱えるようにする(これは上位の make でやるべきか？)
 #SRC_JSONL_FILES := $(shell find $(INPUT_DIR) -name *.output.jsonl)
 SRC_JSONL_FILE := $(INPUT_DIR)/$(TARGET).output.jsonl
 OUTPUT_BASE_DIR := /mnt/hinoki/ueda/covid19/causalitygraph
@@ -22,7 +22,7 @@ KNP_DIR := $(OUTPUT_BASE_DIR)/knp/$(TARGET)
 SPLIT_KNP_DONE := $(OUTPUT_BASE_DIR)/knp/$(TARGET).done
 PAS_DONE := $(OUTPUT_BASE_DIR)/pas/$(TARGET).done
 PAS_DIR := $(OUTPUT_BASE_DIR)/pas/$(TARGET)
-TGT_JSONL_FILE := $(OUTPUT_BASE_DIR)/json/$(TARGET).jsonl
+TGT_JSONL_FILE := $(OUTPUT_BASE_DIR)/jsonl/$(TARGET).jsonl
 
 all: $(TGT_JSONL_FILE)
 
@@ -43,7 +43,7 @@ $(KNP_FILE): $(TSV_FILE)
 	mkdir -p $(dir $@)
 	cut -f3 $< | env PERL5LIB=/home/ueda/usr/lib/perl5/site_perl/5.26.2 CUDA_VISIBLE_DEVICES=$(GPUS) $(BERTKNP_DIR)/bin/bertknp -j -p $(PYTHON_FOR_BERTKNP) -k $(KNP) > $@ || rm -f $@
 
-# extract S-ID and sentences from json file and convert to tsv
+# extract S-ID, topic and sentences from jsonl file and convert to tsv
 $(TSV_FILE): $(SRC_JSONL_FILE)
 	mkdir -p $(dir $@)
-	cat $< | $(PYTHON) $(HERE)preprocess_json.py > $@ || rm -f $@
+	cat $< | $(PYTHON) $(HERE)preprocess_jsonl.py $(TARGET) > $@ || rm -f $@

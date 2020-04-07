@@ -1,9 +1,7 @@
 # preprocess scripts for building CausalityGraph
 
-## convert XML file from WWW2sf to csv file
-
 ```zsh
-cat webpage.xml | python scripts/xml2csv.py > webpage.csv
+make GPUS=0,1 TARGET=2020-04-07-10-19
 ```
 
 ## clone CausalityGraph

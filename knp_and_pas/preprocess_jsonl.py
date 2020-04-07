@@ -7,7 +7,7 @@ from tqdm import tqdm
 from pyknp import Juman
 from transformers import BertTokenizer
 
-# cat orig.jsonl | python scripts/preprocess_jsonl.py > processed.tsv
+# cat orig.jsonl | python scripts/preprocess_jsonl.py $(TARGET) > processed.tsv
 
 """
 jsonl ファイルから文と topic と S-ID を取り出し、
@@ -32,14 +32,16 @@ class Document(NamedTuple):
 
 def main():
     documents = []
+    idx = 0
     for line in tqdm(sys.stdin.readlines()):
         input_obj = json.loads(line.strip())
         classes = [key for key, value in input_obj['classes'].items() if value == 1]
         if not classes:
             continue
-        did = 'hogehgoe'
+        did = sys.argv[1] + str(idx)
         sentences: List[str] = list(filter_(input_obj['rawsentences']))
         documents.append(Document(did, classes[0], sentences))
+        idx += 1
 
     for document in tqdm(documents):
         idx = 1

@@ -36,8 +36,8 @@ def main():
     with open(args.tsv_file, mode='rt') as f:
         for line in tqdm(f.readlines(), desc='2/3'):
             line = line.strip()
-            sid, sent = line.split('\t')
-            did = sid.split('-')[0]
+            sid, _, sent = line.split('\t')
+            did = '-'.join(sid.split('-')[:-1])
             if sent not in sent2knp:
                 ignored_dids.add(did)
                 continue
