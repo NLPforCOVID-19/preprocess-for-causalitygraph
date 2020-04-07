@@ -8,6 +8,9 @@ ipdb = "*"
 
 [packages]
 tqdm = "*"
+transformers = "*"
+jaconv = "*"
+pyknp = "*"
 
 [requires]
 python_version = "3.7"
