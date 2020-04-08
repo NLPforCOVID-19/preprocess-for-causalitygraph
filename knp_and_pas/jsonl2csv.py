@@ -38,7 +38,7 @@ def main():
         classes = [key for key, value in input_obj['classes'].items() if value == 1]
         if not classes:
             continue
-        did = sys.argv[1] + str(idx)
+        did = f'{sys.argv[1]}-{idx:04}'
         sentences: List[str] = list(filter_(input_obj['rawsentences']))
         documents.append(Document(did, classes[0], sentences))
         idx += 1

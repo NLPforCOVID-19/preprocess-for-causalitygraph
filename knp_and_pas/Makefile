@@ -28,11 +28,13 @@ all: $(TGT_JSONL_FILE)
 
 # edit json file
 $(TGT_JSONL_FILE): $(TSV_FILE) $(PAS_DONE)
+	mkdir -p $(dir $@)
 	cat $< | $(PYTHON) $(HERE)knp2json.py --pas-dir $(PAS_DIR) --skipped-file $(dir $@)skipped.$(TARGET).txt > $@ || rm -f $@
 
 # perform PAS analysis
 $(PAS_DONE): $(SPLIT_KNP_DONE)
-	$(PYTHON_FOR_PAS) $(PAS_ANALYSIS_DIR)/src/inference.py -r $(PAS_MODEL_FILE) --knp-dir $(KNP_DIR) --export-dir $(PAS_DIR) --use-bertknp -d $(GPUS) > $(dir $(PAS_DONE))$(TARGET)_tree.txt && touch $@
+	mkdir -p $(dir $@)
+	$(PYTHON_FOR_PAS) $(PAS_ANALYSIS_DIR)/src/inference.py -r $(PAS_MODEL_FILE) --knp-dir $(KNP_DIR) --export-dir $(PAS_DIR) --use-bertknp -d $(GPUS) > $(dir $@)$(TARGET)_tree.txt && touch $@
 
 # split KNP file into documents for PAS analysis
 $(SPLIT_KNP_DONE): $(KNP_FILE) $(TSV_FILE)
@@ -46,4 +48,4 @@ $(KNP_FILE): $(TSV_FILE)
 # extract S-ID, topic and sentences from jsonl file and convert to tsv
 $(TSV_FILE): $(SRC_JSONL_FILE)
 	mkdir -p $(dir $@)
-	cat $< | $(PYTHON) $(HERE)preprocess_jsonl.py $(TARGET) > $@ || rm -f $@
+	cat $< | $(PYTHON) $(HERE)jsonl2csv.py $(TARGET) > $@ || rm -f $@
