@@ -21,7 +21,7 @@ JUMAN_COMMAND = '/mnt/violet/share/tool/juman++v2/bin/jumanpp'
 BERTKNP_MODEL = '/mnt/berry/home/ueda/bertknp-0.2-20190901/pretrained_model'
 
 jumanpp = Juman(command=JUMAN_COMMAND)
-tokenizer = BertTokenizer.from_pretrained()
+tokenizer = BertTokenizer.from_pretrained(BERTKNP_MODEL)
 
 
 class Document(NamedTuple):
