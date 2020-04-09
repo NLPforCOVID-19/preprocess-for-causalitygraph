@@ -22,7 +22,7 @@ def main():
     output_dir.mkdir(exist_ok=True)
 
     sent2knp = {}
-    with open(args.knp_file, mode='rt') as f:
+    with open(args.knp_file, mode='rt', errors='ignore') as f:
         buff = ''
         for line in tqdm(f.readlines(), desc='1/3'):
             buff += line
@@ -33,7 +33,7 @@ def main():
 
     did2knp = defaultdict(str)
     ignored_dids = set()
-    with open(args.tsv_file, mode='rt') as f:
+    with open(args.tsv_file, mode='rt', errors='ignore') as f:
         for line in tqdm(f.readlines(), desc='2/3'):
             line = line.strip()
             sid, _, sent = line.split('\t')
