@@ -39,7 +39,7 @@ def main():
     for did, sentences in did2sentences.items():
 
         output_obj = {
-            'id': '',
+            'id': did,
             'user_id': '',
             'category': did2topic[did],
             'sub_category': did2topic[did],
