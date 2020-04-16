@@ -5,12 +5,20 @@ verify_ssl = true
 
 [dev-packages]
 ipdb = "*"
+ipython = "*"
 
 [packages]
 tqdm = "*"
 transformers = "*"
 jaconv = "*"
 pyknp = "*"
+pyknp-eventgraph = {editable = true,git = "https://github.com/ku-nlp/pyknp-eventgraph.git",ref = "master"}
+mojimoji = "*"
+textformatting = {editable = true,git = "https://github.com/ku-nlp/python-textformatting.git",ref = "master"}
+ishi = {editable = true,git = "https://github.com/ku-nlp/ishi.git",ref = "master"}
+scipy = "*"
+gensim = "*"
+sklearn = "*"
 
 [requires]
 python_version = "3.7"
