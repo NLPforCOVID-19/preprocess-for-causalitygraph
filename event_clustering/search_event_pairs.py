@@ -4,27 +4,33 @@ import pyknp
 import re
 import os
 import argparse
-from scripts import sort_by_cluster
+from event_clustering import sort_by_cluster
 # import sort_by_cluster
 import pickle
 from collections import defaultdict
 
 
 class Search_event():
-    def __init__(self, keyword='water', data_date='20200120', threshold='0.6'):
+    def __init__(self, data_dir, svg_dir_url, keyword='water', data_date='20200120', threshold='0.6', category_file=None):
         # keywordが上位カテゴリならその下位カテゴリをkeyword_listに，下位カテゴリならそれをkeyword_list
-        with open('fuman_categories.txt') as f:
-            categ_lines = f.readlines()
-        categ_dic = {}
-        for line in categ_lines:
-            categ = line.strip().split()
-            super_categ = categ[2]
-            sub_categ = categ[3]
-            categ_dic[super_categ] = categ_dic.get(super_categ, []) + [sub_categ]
-        if keyword in categ_dic:
-            self.keyword_list = categ_dic[keyword]
+        if category_file is not None:
+            with open(category_file) as f:
+                categ_lines = f.readlines()
+            categ_dic = {}
+            for line in categ_lines:
+                categ = line.strip().split()
+                super_categ = categ[2]
+                sub_categ = categ[3]
+                categ_dic[super_categ] = categ_dic.get(super_categ, []) + [sub_categ]
+            if keyword in categ_dic:
+                self.keyword_list = categ_dic[keyword]
+            else:
+                self.keyword_list = [keyword]
         else:
             self.keyword_list = [keyword]
+        
+        self.data_dir = data_dir
+        self.svg_dir_url = svg_dir_url
         self.threshold = str(float(threshold))
         self.data_date = data_date
         self.negative_pattern_list = ['不満だ/ふまんだ', '嫌だ/いやだ', '困る/こまる']
@@ -37,10 +43,10 @@ class Search_event():
         self.rep2events = {}
 
         for keyword in self.keyword_list:
-            clustering_file = '/share/tool/causalgraph/fuman/clustering/{}/{}_{}.json'.format(data_date, keyword, threshold)
-            cluster_vec_file = '/share/tool/causalgraph/fuman/clustering/{}/{}_{}.vec.pickle'.format(data_date, keyword, threshold)
-            event_path = '/share/tool/causalgraph/fuman/event_pairs/{}/{}.event_pairs.json'.format(data_date, keyword)
-            self.url_format_str[keyword] = 'http://lotus.kuee.kyoto-u.ac.jp/~kawahara/causalgraph/fuman/{}/{}.svg/{}.svg'.format(data_date, keyword, '{}')
+            clustering_file = os.path.join(self.data_dir, 'clustering/{}/{}_{}.json'.format(data_date, keyword, threshold))
+            cluster_vec_file = os.path.join(self.data_dir, 'clustering/{}/{}_{}.vec.pickle'.format(data_date, keyword, threshold))
+            event_path = os.path.join(self.data_dir, 'event_pairs/{}/{}.event_pairs.json'.format(data_date, keyword))
+            self.url_format_str[keyword] = os.path.join(self.svg_dir_url, '{}/{}/{{}}.svg'.format(data_date, keyword))
 
             self.rep2cluster[keyword] = {}
             self.event_json[keyword] = []
@@ -149,8 +155,8 @@ class Search_event():
         category = cluster_id.split('-')[0]
         threshold = cluster_id.split('-')[1]
         cluster_index = cluster_id.split('-')[2]
-        cluster_search_file = '/share/tool/causalgraph/fuman/clustering/{}/{}_{}.json'.format(self.data_date, category, threshold)
-        cluster_search_mrph_file = '/share/tool/causalgraph/fuman/clustering/{}/{}_{}.mrph.json'.format(self.data_date, category, threshold)
+        cluster_search_file = os.path.join(self.data_dir, 'clustering/{}/{}_{}.json'.format(self.data_date, category, threshold))
+        cluster_search_mrph_file = os.path.join(self.data_dir, 'clustering/{}/{}_{}.mrph.json'.format(self.data_date, category, threshold))
         with open(cluster_search_file, 'r') as f:
             cluster2reps = json.load(f)
         with open(cluster_search_mrph_file, 'r') as f:
@@ -164,8 +170,8 @@ class Search_event():
         return self._classify_events(events, results, category)
 
     def track_cluster_search(self, query_event, track_keyword, track_threshold='0.75'):
-        cluster_search_file = '/share/tool/causalgraph/fuman/clustering/{}/{}_{}.json'.format(self.data_date, track_keyword, track_threshold)
-        cluster_search_mrph_file = '/share/tool/causalgraph/fuman/clustering/{}/{}_{}.mrph.json'.format(self.data_date, track_keyword, track_threshold)
+        cluster_search_file = os.path.join(self.data_dir, 'clustering/{}/{}_{}.json'.format(self.data_date, track_keyword, track_threshold))
+        cluster_search_mrph_file = os.path.join(self.data_dir, 'clustering/{}/{}_{}.mrph.json'.format(self.data_date, track_keyword, track_threshold))
         with open(cluster_search_file, 'r') as f:
             cluster2reps = json.load(f)
         with open(cluster_search_mrph_file, 'r') as f:
@@ -258,19 +264,25 @@ class Search_event():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--keyword', help='what topic you want to search', type=str, default='water')
+    parser.add_argument('--svg_dir_url', help='url of directory including svg file', type=str, default='water')
     parser.add_argument('--data_date', help='event data dir', type=str, default='20200120')
     parser.add_argument('--threshold', help='threshold of clustering', type=str, default='0.6')
     parser.add_argument('--mode', help='search mode: query, cluster, of track_cluster', type=str, default='query')
     parser.add_argument('--track_threshold', help='threshold for clustering file to track cluster', type=str, default='0.75')
     parser.add_argument('--track_keyword', help='topic for clustering file to track cluster', type=str, default=None)
+    parser.add_argument('--category_file', help='category hierarchy file', type=str, default=None)
+    parser.add_argument('--data_dir', help='directory of data. $DATA_DIR/clustering and $DATA_DIR/event_pairs are required', type=str, default=None)
     args = parser.parse_args()
     keyword = args.keyword
+    svg_dir_url = args.svg_dir_url
     data_date = args.data_date
     threshold = args.threshold
     mode = args.mode
     track_threshold = args.track_threshold
     track_keyword = args.track_keyword
-    search_event = Search_event(keyword, data_date, threshold)
+    data_dir = args.data_dir
+    category_file = args.category_file
+    search_event = Search_event(data_dir, svg_dir_url, keyword, data_date, threshold, category_file)
     while True:
         input_str = input()
         if mode == 'query':
